@@ -1,6 +1,6 @@
 <svg width="440" height="440" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <!-- The letter U. When rotated 90 degrees counterclockwise, it's a C.
+        <!-- The letter U. When rotated 90 degrees clockwise, it's a C.
              Fits inside a 100x100 box with 5 units margin. -->
         <g id="u" stroke="black" stroke-width="30">
             <!-- The left and right stem. -->
