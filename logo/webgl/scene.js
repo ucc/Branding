@@ -25,6 +25,19 @@ var sceneBounds = {
 };
 
 /**
+ * Debug; display information on the page (for most things this is much nicer than Alt-Tabbing to and fro with Firebug)
+ */
+function Debug(html, clear)
+{
+	var div = document.getElementById("debug");
+	if (clear)
+		div.innerHTML = html;
+	else
+		div.innerHTML += html;
+}
+
+
+/**
  * Logo constructor
  * @param textureSrc - Texture to use
  * @param size - Size of the cube
@@ -36,26 +49,29 @@ var sceneBounds = {
  * @param attractors - Objects to gravitationally move towards
  * @param repulsors - Objects to gravitationally move away from
  */
-function Logo(imageSrc, size, position = [2.0*(Math.random()-0.5), 2.0*(Math.random()-0.5), -15 + 10*Math.random()], velocity = [1.0*(Math.random()-0.5), 1.0*(Math.random()-0.5), 1.0*(Math.random()-0.5)], rotationAxis = [Math.random(), Math.random(), Math.random()], rotationSpeed = null, reflect = sceneBounds, attractors = [], repulsors = [])
+
+// Only Iceweasel understands this
+//function Logo(imageSrc, size, position = [2.0*(Math.random()-0.5), 2.0*(Math.random()-0.5), -15 + 10*Math.random()], velocity = [1.0*(Math.random()-0.5), 1.0*(Math.random()-0.5), 1.0*(Math.random()-0.5)], rotationAxis = [Math.random(), Math.random(), Math.random()], rotationSpeed = null, reflect = sceneBounds, attractors = [], repulsors = [])
+function Logo(imageSrc, size)
 {
-	this.position = position;
-	this.velocity = velocity;
+
+	this.size = size;
+	this.radius = Math.sqrt(2*this.size);
+	this.position = [2.0*(Math.random()-0.5), 2.0*(Math.random()-0.5), -15 + 10*Math.random()];;
+	this.velocity = [1.0*(Math.random()-0.5), 1.0*(Math.random()-0.5), 1.0*(Math.random()-0.5)];
 	this.acceleration = [0.0, 0.0, 0.0]
-	this.rotationAxis = rotationAxis;
-	this.rotationSpeed = rotationSpeed;
+	this.rotationAxis = [Math.random(), Math.random(), Math.random()];
 	this.rotation = 0.0;
-	this.reflect = reflect;	
-	this.attractors = attractors;
-	this.repulsors = repulsors;
+	this.reflect = sceneBounds;	
+	this.attractors = [];
+	this.repulsors = [];
 	this.lastUpdateTime = 0;
 
-	if (!this.rotationSpeed)
-	{
-		if (Math.random() > 0.5)
-			this.rotationSpeed = 30.0 + 20.0 * (Math.random() - 0.5);
-		else
-			this.rotationSpeed = -30.0 - 20.0 * (Math.random() - 0.5);
-	}
+	if (Math.random() > 0.5)
+		this.rotationSpeed = 30.0 + 20.0 * (Math.random() - 0.5);
+	else
+		this.rotationSpeed = -30.0 - 20.0 * (Math.random() - 0.5);
+
 
 	// To be initialised below (Wall of text incoming)
 	this.image = null;
@@ -119,34 +135,34 @@ function Logo(imageSrc, size, position = [2.0*(Math.random()-0.5), 2.0*(Math.ran
 	
   	this.textureCoordinates = [
     // Front
+	0.0,  0.0,
+    0.0,  1.0,   
     1.0,  1.0,
-    0.0,  1.0,
-    0.0,  0.0,
     1.0,  0.0,
     // Back
+	0.0,  0.0,
+    0.0,  1.0,   
     1.0,  1.0,
-    0.0,  1.0,
-    0.0,  0.0,
     1.0,  0.0,
     // Top
+	0.0,  0.0,
+    0.0,  1.0,   
     1.0,  1.0,
-    0.0,  1.0,
-    0.0,  0.0,
     1.0,  0.0,
     // Bottom
+	0.0,  0.0,
+    0.0,  1.0,   
     1.0,  1.0,
-    0.0,  1.0,
-    0.0,  0.0,
     1.0,  0.0,
     // Right
+	0.0,  0.0,
+    0.0,  1.0,   
     1.0,  1.0,
-    0.0,  1.0,
-    0.0,  0.0,
     1.0,  0.0,
     // Left
+	0.0,  0.0,
+    0.0,  1.0,   
     1.0,  1.0,
-    0.0,  1.0,
-    0.0,  0.0,
     1.0,  0.0,
   ];
 
@@ -169,13 +185,19 @@ function Logo(imageSrc, size, position = [2.0*(Math.random()-0.5), 2.0*(Math.ran
 
 	// Initialise the texture
 	this.texture = gl.createTexture();
-	this.image = new Image();
-	this.image.src = imageSrc;
-	
-
-	var image = this.image;
-	var texture = this.texture;
-	this.image.onload = function() {handleTextureLoaded(image, texture);};
+	if (imageSrc[0] !== '+')
+	{
+		this.image = new Image();
+		this.image.src = imageSrc;
+		var image = this.image;
+		var texture = this.texture;
+		this.image.onload = function() {handleTextureLoaded(image, texture);};
+	}
+	else
+	{
+		var texture = this.texture;
+		textTexture(imageSrc.slice(1), texture);
+	}
 	
 }
 
@@ -185,11 +207,11 @@ function Logo(imageSrc, size, position = [2.0*(Math.random()-0.5), 2.0*(Math.ran
 Logo.prototype.Draw = function()
 {
 	loadIdentity();
-	console.log("Position");
-	console.log(this.position);
+	//console.log("Position");
+	//console.log(this.position);
 	mvTranslate(this.position);
 	mvPushMatrix();
-	//document.getElementById("debug").innerHTML = "<p> Rotation: [" + this.rotation + "]</p><p> Axis: [" + this.rotationAxis + "]</p>";
+	//Debug("<p> Rotation: [" + this.rotation + "]</p><p> Axis: [" + this.rotationAxis + "]</p>");
 	mvRotate(this.rotation, this.rotationAxis);
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
 	gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
@@ -204,7 +226,7 @@ Logo.prototype.Draw = function()
 	mvPopMatrix();
 }
 
-Logo.prototype.Gravity = function(bodies, gravity = 10.0)
+Logo.prototype.Gravity = function(bodies, gravity)
 {
 	for (var i in bodies)
 	{
@@ -223,6 +245,83 @@ Logo.prototype.Gravity = function(bodies, gravity = 10.0)
 			this.acceleration[i] -= gd * (b.position[j] - this.position[j])
 	}
 }
+
+/**
+ * Bounce off a surface with normal vector n
+ */
+Logo.prototype.Bounce = function(n)
+{
+	var dot = 0;
+	for (var j in this.velocity)
+		dot += this.velocity[j] * n[j];
+	
+	for (var j in this.velocity)
+	{
+		this.velocity[j] = - (2.0 * dot * n[j] - this.velocity[j]);
+	}
+}
+
+/**
+ * Do two objects collide? Returns normal vector at collision, otherwise null
+ */
+Logo.prototype.Collides = function(b)
+{
+	
+	// [BOB] complained there were no collisions, so I am implementing collisions
+
+	var dist = 0.0;
+	for (var i in this.position)
+		dist += Math.pow(b.position[i] - this.position[i], 2);
+	dist = Math.sqrt(dist);
+	if (dist <= this.radius + b.radius)
+	{
+		// return normal vector from b to this
+		var n = [];
+		var nMag = 0.0;
+		for (var i in this.position)
+		{
+			n[i] = (this.position[i] - b.position[i]);
+			nMag += Math.pow(n[i],2);
+		}
+		nMag = Math.sqrt(nMag);
+		for (var i in n) n[i] /= nMag;
+		return n;
+	}
+	
+	return null;
+}
+
+/**
+ * Detect collision and handle it if it occurs
+ */
+Logo.prototype.HandleCollision = function(b)
+{
+	var count = 0;
+	var n = this.Collides(b);
+	if (n)
+	{
+		var negN = []; for (var i in n) negN[i] = -n[i];
+
+		var dist = 0.0;
+		for (var i in this.position) dist += Math.pow(b.position[i] - this.position[i], 2);
+		dist = Math.sqrt(dist);
+
+		// make sure the spheres don't overlap
+		var delta = 1.1*(this.radius + b.radius - dist) / 2.0
+		for (var i in this.position)
+		{
+			this.position[i] += n[i] * delta;
+			b.position[i] -= n[i] * delta;
+		}				
+
+		// bounce both Logos
+		this.Bounce(n);
+		b.Bounce(negN);
+	}
+	return n;
+}
+
+
 
 /**
  * Update the logo position
@@ -253,7 +352,7 @@ Logo.prototype.Step = function()
 
 		// Enforce a speed limit
 		if (this.velocity[i] > 2.0)
-			this.velocity[i] *= 0.9;
+			this.velocity[i] *= 0.5;
 
 		if (!this.reflect)
 			continue;
@@ -278,17 +377,19 @@ Logo.prototype.Step = function()
 			//console.log(n);
 			//console.log(cubeVelocity);
 			
-			var dot = 0;
-			for (var j in this.velocity)
-				dot += this.velocity[j] * n[j];
-			
-			for (var j in this.velocity)
-			{
-				this.velocity[j] = - (2.0 * dot * n[j] - this.velocity[j]);
-			}
+			this.Bounce(n);
 			break;
 		}
 	}
+
+	for (var i in gObjects)
+	{
+		if (gObjects[i] === this)
+			continue;
+		var n = this.HandleCollision(gObjects[i]);
+		
+	}
+
 	this.lastUpdateTime = currentTime;
 }
 
@@ -296,7 +397,7 @@ Logo.prototype.Step = function()
  * Creates a sphere vertex array
  */
 
-function MakeSphere(latitudeBands=20, longitudeBands=30)
+function MakeSphere(latitudeBands, longitudeBands)
 {
 	var vertexPositionData = [];
 	for (var latNumber=0; latNumber <= latitudeBands; latNumber++) 
@@ -344,7 +445,7 @@ function start() {
 		return;
 	}
 	
-  canvas = document.getElementById("glcanvas");
+	canvas = document.getElementById("glcanvas");
 
   initWebGL(canvas);      // Initialize the GL context
   
@@ -357,7 +458,7 @@ function start() {
 	}
 
 
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);  // Clear to white, fully opaque
+    gl.clearColor(0.9, 0.9, 1.0, 1.0);  // Clear to white, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
@@ -367,23 +468,36 @@ function start() {
     
     initShaders();
     
-	gObjects = {}
-	gObjects.steamroller = new Logo(uccSteamroller, 1.0); // Draw the steam roller over the top of everyone
-	gObjects.cube = new Logo(uccLogo, 1.0);
-	gObjects.uwa = new Logo(uwaLogo, 0.5);
-	gObjects.guild = new Logo(guildLogo, 0.5);
-	gObjects.netapp = new Logo(netappLogo, 0.5);
-	gObjects.sla = new Logo(uccSLA, 0.5);
+	gObjects = []
+	// Steamroller doesn't roll with Chromium
+	//gObjects.steamroller = new Logo(uccSteamroller, 1.0);
+	gObjects["cube"] = new Logo(uccLogo, 1.0);
+	//gObjects.uwa = new Logo(uwaLogo, 0.5);
+	//gObjects.guild = new Logo(guildLogo, 0.5);
+	//gObjects.netapp = new Logo(netappLogo, 0.5);
+	//gObjects.sla = new Logo(uccSLA, );
+	gObjects["underConstruction"] = new Logo(underConstruction, 1.0);
+	//gObjects.aesop = new Logo("+"+aesopText, 1.0);
 	
 
-	gObjects.guild.repulsors = [gObjects.cube, gObjects.steamroller];
-	gObjects.cube.repulsors = [gObjects.guild, gObjects.steamroller];
-	gObjects.steamroller.attractors = [gObjects.cube, gObjects.guild];
+	//gObjects.guild.attractors = [gObjects.cube];
+	//gObjects.cube.attractors = [gObjects.guild];
+	//gObjects.steamroller.attractors = [gObjects.cube, gObjects.guild];
 	
-	gObjects.cube.position = [0.0,0.0,-10.0];
-	gObjects.cube.rotationSpeed = Math.max(gObjects.cube.rotationSpeed, 30);
+	gObjects["cube"].position = [0.0,0.0,-10.0];
+	gObjects["cube"].rotationSpeed = Math.max(gObjects.cube.rotationSpeed, 30);
     
     setInterval(drawScene, 15);
+
+	// Show off our amazing logo by allowing people to add more!
+	canvas.onmousedown = function(event)
+	{
+		var src = (Math.random() > 0.5) ? uccLogo : underConstruction;
+		var obj = new Logo(src, 0.5);
+		gObjects[gObjects.length] = obj;
+		obj.position[0] = event.clientX / canvas.width;
+		obj.position[1] = 1.0 - (event.clientY / canvas.height);
+	};
   
 }
 
@@ -410,9 +524,55 @@ function initWebGL() {
 }
 
 
+function wrapText(context, text, x, y, maxWidth, lineHeight) {
+    var words = text.split(' ');
+    var line = '';
+
+    for(var n = 0; n < words.length; n++)
+	{
+      var testLine = line + words[n] + ' ';
+      var metrics = context.measureText(testLine);
+      var testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        context.fillText(line, x, y);
+        line = words[n] + ' ';
+        y += lineHeight;
+      }
+      else {
+        line = testLine;
+      }
+
+	}
+    context.fillText(line, x, y);
+}
+
+function textTexture(text, texture)
+{
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	var canvas = document.createElement("canvas");
+	canvas.width = 512; canvas.height = 512;
+	var ctx = canvas.getContext("2d");
+	ctx.font = "20px Courier Bold";
+	wrapText(ctx,text, 0.1*canvas.width, 0.1*canvas.height, 0.8*canvas.width, 21);
+		ctx.beginPath();
+		ctx.moveTo(0,0);
+		ctx.lineTo(canvas.width,0);
+		ctx.lineTo(canvas.width,canvas.height);
+		ctx.lineTo(0,canvas.height);
+		ctx.lineTo(0,0);
+		ctx.stroke();
+
+	var image = canvas;
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+	gl.generateMipmap(gl.TEXTURE_2D);
+	gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
 function handleTextureLoaded(image, texture)
 {
-	console.log("handleTextureLoaded, image = " + image);
+	//console.log("handleTextureLoaded, image = " + image);
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	// scale non power of two images
 	if ((image.width & (image.width - 1)) != 0 || (image.height & (image.height - 1)) != 0)
@@ -426,6 +586,8 @@ function handleTextureLoaded(image, texture)
 		var ctx = canvas.getContext("2d");
 		
 		ctx.drawImage(image, w/2 - image.width/2, h/2 - image.height/2, image.width, image.height);
+		//ctx.font = "30px Courier";
+		//ctx.fillText("hello world\nhow are you", 0.1*w, h/2, 0.8*w);
 		ctx.beginPath();
 		ctx.moveTo(0,0);
 		ctx.lineTo(w,0);
@@ -450,6 +612,8 @@ function handleTextureLoaded(image, texture)
 //
 function drawScene() 
 {
+
+	
 	// Clear the canvas before we start drawing on it.
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   
@@ -457,7 +621,7 @@ function drawScene()
 	// scene. Our field of view is 45 degrees, with a width/height
 	// ratio of 640:480, and we only want to see objects between 0.1 units
 	// and 100 units away from the camera.
-	perspectiveMatrix = makePerspective(45, 640.0/480.0, 0.1, 100.0);
+	perspectiveMatrix = makePerspective(45, canvas.width/canvas.height, 0.1, 100.0);
   
 
 
