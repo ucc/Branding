@@ -37,13 +37,28 @@ var perspectiveMatrix;
 // Called when the canvas is created to get the ball rolling. (ho ho ho)
 //
 function start() {
+
+	// Browser is all like "WTF is WebGL"
+	if (!window.WebGLRenderingContext)
+	{
+		alert("To view the UCC Logo in its full glory, use a browser that supports WebGL.\n\nYou have been redirected to http://www.mozilla.org/en-US/firefox/new/");
+		setTimeout(function() {window.location.href = "http://www.mozilla.org/en-US/firefox/new/";}, 1);
+		return;
+	}
+	
   canvas = document.getElementById("glcanvas");
 
   initWebGL(canvas);      // Initialize the GL context
   
-  // Only continue if WebGL is available and working
-  
-  if (gl) {
+	// Browser is all like "fglrx segfaulted"
+	if (!gl)
+	{
+		alert("Alas! Your browser supports WebGL but couldn't initialise it.\n(This probably means you are using shitty fglrx drivers).\n\nYou have been redirected to http://get.webgl.org/troubleshooting");
+		setTimeout(function() {window.location.href = "http://get.webgl.org/troubleshooting";}, 1);
+		return;
+	}
+
+
     gl.clearColor(1.0, 1.0, 1.0, 0.5);  // Clear to white, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -66,7 +81,7 @@ function start() {
     // Set up to draw the scene periodically.
     
     setInterval(drawScene, 15);
-  }
+  
 }
 
 //
