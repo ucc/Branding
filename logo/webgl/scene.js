@@ -478,6 +478,7 @@ function start() {
 	//gObjects.sla = new Logo(uccSLA, );
 	gObjects["underConstruction"] = new Logo(underConstruction, 1.0);
 	//gObjects.aesop = new Logo("+"+aesopText, 1.0);
+	gObjects["html5"] = new Logo(html5Logo, 1.0);
 	
 
 	//gObjects.guild.attractors = [gObjects.cube];
@@ -492,7 +493,9 @@ function start() {
 	// Show off our amazing logo by allowing people to add more!
 	canvas.onmousedown = function(event)
 	{
-		var src = (Math.random() > 0.5) ? uccLogo : underConstruction;
+		var src = uccLogo;
+		if (Math.random() > 1.0/3.0)
+			src = (Math.random() > 0.5) ? underConstruction : html5Logo;
 		var obj = new Logo(src, 0.5);
 		gObjects[gObjects.length] = obj;
 		obj.position[0] = event.clientX / canvas.width;
